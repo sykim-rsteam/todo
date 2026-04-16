@@ -14,11 +14,15 @@ const FILTERS: { key: Filter; label: string }[] = [
 
 export default function FilterBar({ current, onChange, counts }: Props) {
   return (
-    <div className="filter-bar">
+    <div className="flex gap-2 mb-4">
       {FILTERS.map(({ key, label }) => (
         <button
           key={key}
-          className={current === key ? 'active' : ''}
+          className={`flex-1 py-2 text-sm rounded-md cursor-pointer border-2 transition-all ${
+            current === key
+              ? 'border-accent text-accent bg-accent-bg'
+              : 'border-transparent text-text bg-bg-card'
+          }`}
           onClick={() => onChange(key)}
         >
           {label} ({counts[key]})

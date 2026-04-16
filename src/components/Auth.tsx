@@ -29,16 +29,20 @@ export default function Auth() {
     setLoading(false)
   }
 
+  const inputClass =
+    'w-full px-3.5 py-3 text-base border-2 border-border rounded-lg bg-bg text-text-h outline-none focus:border-accent transition-colors'
+
   return (
-    <div className="auth">
-      <h1>Todo App</h1>
-      <form className="auth-form" onSubmit={handleSubmit}>
+    <div className="max-w-[360px] mx-auto pt-20 text-center">
+      <h1 className="text-3xl font-semibold text-text-h mb-8">Todo App</h1>
+      <form className="flex flex-col gap-3" onSubmit={handleSubmit}>
         <input
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="이메일"
           required
+          className={inputClass}
         />
         <input
           type="password"
@@ -47,15 +51,20 @@ export default function Auth() {
           placeholder="비밀번호 (6자 이상)"
           minLength={6}
           required
+          className={inputClass}
         />
-        {error && <p className="auth-error">{error}</p>}
-        {message && <p className="auth-message">{message}</p>}
-        <button type="submit" disabled={loading}>
+        {error && <p className="text-danger text-sm m-0">{error}</p>}
+        {message && <p className="text-accent text-sm m-0">{message}</p>}
+        <button
+          type="submit"
+          disabled={loading}
+          className="py-3 text-base bg-accent text-white border-none rounded-lg cursor-pointer font-medium hover:opacity-85 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+        >
           {loading ? '처리 중...' : isLogin ? '로그인' : '회원가입'}
         </button>
       </form>
       <button
-        className="auth-toggle"
+        className="mt-4 bg-transparent border-none text-accent cursor-pointer text-sm hover:underline"
         onClick={() => {
           setIsLogin(!isLogin)
           setError('')

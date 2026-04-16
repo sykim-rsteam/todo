@@ -9,11 +9,11 @@ type Props = {
 
 export default function TodoList({ todos, onToggle, onDelete }: Props) {
   if (todos.length === 0) {
-    return <p className="empty-message">할 일이 없습니다</p>
+    return <p className="text-center text-text mt-8">할 일이 없습니다</p>
   }
 
   return (
-    <ul className="todo-list">
+    <ul className="list-none p-0 m-0 flex flex-col gap-2">
       {todos.map((todo) => (
         <TodoItem
           key={todo.id}
