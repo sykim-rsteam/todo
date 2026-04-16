@@ -1,19 +1,37 @@
 import { useState, useEffect } from 'react'
 import type { Todo, Filter } from './types'
+import type { User } from '@supabase/supabase-js'
 import { supabase } from './supabase'
+import Auth from './components/Auth'
 import TodoInput from './components/TodoInput'
 import TodoList from './components/TodoList'
 import FilterBar from './components/FilterBar'
 import './App.css'
 
 function App() {
+  const [user, setUser] = useState<User | null>(null)
   const [todos, setTodos] = useState<Todo[]>([])
   const [filter, setFilter] = useState<Filter>('all')
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetchTodos()
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null)
+      setLoading(false)
+    })
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setUser(session?.user ?? null)
+      }
+    )
+
+    return () => subscription.unsubscribe()
   }, [])
+
+  useEffect(() => {
+    if (user) fetchTodos()
+  }, [user])
 
   const fetchTodos = async () => {
     const { data } = await supabase
@@ -31,13 +49,12 @@ function App() {
         }))
       )
     }
-    setLoading(false)
   }
 
   const addTodo = async (text: string) => {
     const { data } = await supabase
       .from('todos')
-      .insert({ text })
+      .insert({ text, user_id: user!.id })
       .select()
       .single()
 
@@ -69,6 +86,24 @@ function App() {
     setTodos((prev) => prev.filter((t) => t.id !== id))
   }
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    setTodos([])
+  }
+
+  if (loading) {
+    return (
+      <div className="app">
+        <h1>Todo App</h1>
+        <p className="empty-message">불러오는 중...</p>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return <Auth />
+  }
+
   const filtered = todos.filter((t) => {
     if (filter === 'active') return !t.done
     if (filter === 'done') return t.done
@@ -81,18 +116,15 @@ function App() {
     done: todos.filter((t) => t.done).length,
   }
 
-  if (loading) {
-    return (
-      <div className="app">
-        <h1>Todo App</h1>
-        <p className="empty-message">불러오는 중...</p>
-      </div>
-    )
-  }
-
   return (
     <div className="app">
-      <h1>Todo App</h1>
+      <header className="app-header">
+        <h1>Todo App</h1>
+        <div className="user-info">
+          <span>{user.email}</span>
+          <button className="logout-btn" onClick={handleLogout}>로그아웃</button>
+        </div>
+      </header>
       <TodoInput onAdd={addTodo} />
       <FilterBar current={filter} onChange={setFilter} counts={counts} />
       <TodoList todos={filtered} onToggle={toggleTodo} onDelete={deleteTodo} />
