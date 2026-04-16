@@ -16,27 +16,29 @@ export default function TodoPage({ user }: Props) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetchTodos()
-  }, [])
+    let cancelled = false
 
-  const fetchTodos = async () => {
-    const { data } = await supabase
+    supabase
       .from('todos')
       .select('*')
       .order('created_at', { ascending: false })
+      .then(({ data }) => {
+        if (cancelled) return
+        if (data) {
+          setTodos(
+            data.map((row) => ({
+              id: row.id,
+              text: row.text,
+              done: row.done,
+              createdAt: new Date(row.created_at).getTime(),
+            }))
+          )
+        }
+        setLoading(false)
+      })
 
-    if (data) {
-      setTodos(
-        data.map((row) => ({
-          id: row.id,
-          text: row.text,
-          done: row.done,
-          createdAt: new Date(row.created_at).getTime(),
-        }))
-      )
-    }
-    setLoading(false)
-  }
+    return () => { cancelled = true }
+  }, [])
 
   const addTodo = async (text: string) => {
     const { data } = await supabase
@@ -86,7 +88,7 @@ export default function TodoPage({ user }: Props) {
   }
 
   if (loading) {
-    return <p className="empty-message">불러오는 중...</p>
+    return <p className="text-center text-text mt-8">불러오는 중...</p>
   }
 
   return (
