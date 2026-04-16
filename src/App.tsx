@@ -1,46 +1,71 @@
 import { useState, useEffect } from 'react'
 import type { Todo, Filter } from './types'
+import { supabase } from './supabase'
 import TodoInput from './components/TodoInput'
 import TodoList from './components/TodoList'
 import FilterBar from './components/FilterBar'
 import './App.css'
 
-const STORAGE_KEY = 'practice-todo-app'
-
-function loadTodos(): Todo[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    return raw ? JSON.parse(raw) : []
-  } catch {
-    return []
-  }
-}
-
 function App() {
-  const [todos, setTodos] = useState<Todo[]>(loadTodos)
+  const [todos, setTodos] = useState<Todo[]>([])
   const [filter, setFilter] = useState<Filter>('all')
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(todos))
-  }, [todos])
+    fetchTodos()
+  }, [])
 
-  const addTodo = (text: string) => {
-    const newTodo: Todo = {
-      id: crypto.randomUUID(),
-      text,
-      done: false,
-      createdAt: Date.now(),
+  const fetchTodos = async () => {
+    const { data } = await supabase
+      .from('todos')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (data) {
+      setTodos(
+        data.map((row) => ({
+          id: row.id,
+          text: row.text,
+          done: row.done,
+          createdAt: new Date(row.created_at).getTime(),
+        }))
+      )
     }
-    setTodos((prev) => [newTodo, ...prev])
+    setLoading(false)
   }
 
-  const toggleTodo = (id: string) => {
+  const addTodo = async (text: string) => {
+    const { data } = await supabase
+      .from('todos')
+      .insert({ text })
+      .select()
+      .single()
+
+    if (data) {
+      setTodos((prev) => [
+        {
+          id: data.id,
+          text: data.text,
+          done: data.done,
+          createdAt: new Date(data.created_at).getTime(),
+        },
+        ...prev,
+      ])
+    }
+  }
+
+  const toggleTodo = async (id: string) => {
+    const todo = todos.find((t) => t.id === id)
+    if (!todo) return
+
+    await supabase.from('todos').update({ done: !todo.done }).eq('id', id)
     setTodos((prev) =>
       prev.map((t) => (t.id === id ? { ...t, done: !t.done } : t))
     )
   }
 
-  const deleteTodo = (id: string) => {
+  const deleteTodo = async (id: string) => {
+    await supabase.from('todos').delete().eq('id', id)
     setTodos((prev) => prev.filter((t) => t.id !== id))
   }
 
@@ -54,6 +79,15 @@ function App() {
     all: todos.length,
     active: todos.filter((t) => !t.done).length,
     done: todos.filter((t) => t.done).length,
+  }
+
+  if (loading) {
+    return (
+      <div className="app">
+        <h1>Todo App</h1>
+        <p className="empty-message">불러오는 중...</p>
+      </div>
+    )
   }
 
   return (
