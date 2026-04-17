@@ -1,7 +1,5 @@
-import AppShell from '@/components/AppShell'
-
-export const dynamic = 'force-dynamic'
+import Auth from '@/components/Auth'
 
 export default function LoginPage() {
-  return <AppShell />
+  return <Auth />
 }

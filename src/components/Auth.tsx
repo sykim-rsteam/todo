@@ -1,33 +1,23 @@
 'use client'
 
 import { useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { signIn, signUp } from '@/app/actions'
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true)
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async (formData: FormData) => {
     setError('')
     setMessage('')
     setLoading(true)
 
-    if (isLogin) {
-      const { error } = await supabase.auth.signInWithPassword({ email, password })
-      if (error) setError(error.message)
-    } else {
-      const { data, error } = await supabase.auth.signUp({ email, password })
-      if (error) {
-        setError(error.message)
-      } else if (data.user && !data.session) {
-        setMessage('확인 이메일을 보냈습니다. 이메일을 확인해주세요.')
-      }
-    }
+    const result = isLogin ? await signIn(formData) : await signUp(formData)
+
+    if (result && 'error' in result && result.error) setError(result.error)
+    if (result && 'message' in result && result.message) setMessage(result.message)
     setLoading(false)
   }
 
@@ -37,19 +27,17 @@ export default function Auth() {
   return (
     <div className="max-w-[360px] mx-auto pt-20 text-center">
       <h1 className="text-3xl font-semibold text-text-h mb-8">Todo App</h1>
-      <form className="flex flex-col gap-3" onSubmit={handleSubmit}>
+      <form action={handleSubmit} className="flex flex-col gap-3">
         <input
           type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          name="email"
           placeholder="이메일"
           required
           className={inputClass}
         />
         <input
           type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          name="password"
           placeholder="비밀번호 (6자 이상)"
           minLength={6}
           required
