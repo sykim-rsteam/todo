@@ -1,10 +1,12 @@
+'use client'
+
 import { useState, useEffect } from 'react'
 import type { User } from '@supabase/supabase-js'
-import type { Todo, Filter } from '../types'
-import { supabase } from '../supabase'
-import TodoInput from '../components/TodoInput'
-import TodoList from '../components/TodoList'
-import FilterBar from '../components/FilterBar'
+import type { Todo, Filter } from '@/types'
+import { supabase } from '@/lib/supabase'
+import TodoInput from './TodoInput'
+import TodoList from './TodoList'
+import FilterBar from './FilterBar'
 
 type Props = {
   user: User

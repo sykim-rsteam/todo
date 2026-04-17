@@ -1,4 +1,6 @@
-import type { Todo } from '../types'
+'use client'
+
+import type { Todo } from '@/types'
 import TodoItem from './TodoItem'
 
 type Props = {

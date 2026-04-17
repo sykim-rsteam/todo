@@ -1,5 +1,7 @@
+'use client'
+
 import { useState } from 'react'
-import { supabase } from '../supabase'
+import { supabase } from '@/lib/supabase'
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true)

@@ -25,3 +25,9 @@ dist-ssr
 
 .vercel
 .env
+.env.local
+
+# Next.js
+.next/
+out/
+next-env.d.ts

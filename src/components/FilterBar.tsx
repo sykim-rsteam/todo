@@ -1,4 +1,6 @@
-import type { Filter } from '../types'
+'use client'
+
+import type { Filter } from '@/types'
 
 type Props = {
   current: Filter
